@@ -5,28 +5,21 @@
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
 	android:orientation="vertical"
-	tools:context=".MainActivity">
+	tools:context=".RetrofitActivity">
 
 	<Button
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:layout_marginTop="4dp"
-		android:text="观察与被观察"
-		android:onClick="test1"/>
+		android:text="Retrofit Get请求"
+		android:onClick="get"/>
 
 	<Button
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:layout_marginTop="4dp"
-		android:text="链式任务"
-		android:onClick="linkTask"/>
-
-	<Button
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_marginTop="4dp"
-		android:text="Retrofit"
-		android:onClick="gotoRetrofit"/>
+		android:text="Retrofit + RxJava"
+		android:onClick="getWithRxJava"/>
 
 	<TextView
 		android:id="@+id/text"
