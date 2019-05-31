@@ -11,6 +11,8 @@ import com.google.gson.JsonObject;
 import java.util.List;
 
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.ObservableTransformer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
@@ -94,6 +96,12 @@ public class RetrofitActivity extends AppCompatActivity {
 		});
 	}
 
+	class MyObservableTransformer<T> implements ObservableTransformer<T, T>{
+		@Override
+		public ObservableSource<T> apply(Observable upstream) {
+			return upstream.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+		}
+	}
 
 	public void getWithRxJava(View view) {
 		String baseUrl = "http://rap2api.taobao.org/app/mock/162333/";
@@ -106,7 +114,8 @@ public class RetrofitActivity extends AppCompatActivity {
 		UserUtil userUtil = retrofit.create(UserUtil.class);
 
 		userUtil.getAllWithReJava()     // 调用接口相当于一个事件源
-				.subscribeOn(Schedulers.io())   // 设置事件源在io线程上发生
+				//.subscribeOn(Schedulers.io())   // 设置事件源在io线程上发生
+				.compose(new MyObservableTransformer<>())   // 用ObservableTransformer来处理线程切换
 				.map(jsonObject ->  new Gson().fromJson(jsonObject, UserList.class))
 				.map(userList -> userList.data)
 				/*.map(userList -> Observable.fromIterable(userList.data).filter(item -> item.age >= 30))
@@ -114,7 +123,7 @@ public class RetrofitActivity extends AppCompatActivity {
 								.observeOn(AndroidSchedulers.mainThread())
 								.subscribe(user -> log(user))
 				)*/
-				.observeOn(AndroidSchedulers.mainThread())  // 设置观察者线程
+				//.observeOn(AndroidSchedulers.mainThread())  // 设置观察者线程
 				.subscribe(new DisposableObserver<List<User>>() {
 					@Override
 					public void onComplete() {
