@@ -6,8 +6,9 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+
+import java.util.List;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -47,9 +48,19 @@ public class RetrofitActivity extends AppCompatActivity {
 		}
 	}
 
+	/**
+	 * 和接口的json数据对应，
+	 * 那么就可以直接用Gson或FastJson转成Java数据了。
+	 * 不用自己去解析json字符串。
+	 */
+	class UserList{
+		int code;
+		List<User> data;
+	}
+
 	interface UserUtil{
 		@GET("getData")
-		Call<JsonObject> getAll();
+		Call<UserList> getAll();
 
 
 		@GET("getData")
@@ -64,21 +75,19 @@ public class RetrofitActivity extends AppCompatActivity {
 				.build();
 
 		UserUtil userUtil = retrofit.create(UserUtil.class);
-		Call<JsonObject> call = userUtil.getAll();
+		Call<UserList> call = userUtil.getAll();
 
-		call.enqueue(new Callback<JsonObject>() {
+		call.enqueue(new Callback<UserList>() {
 			@Override
-			public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-				JsonArray jsonArray = response.body().getAsJsonArray("data");
-				for(int i=0; i<jsonArray.size(); i++) {
-					User user = new Gson().fromJson(jsonArray.get(i), User.class);
+			public void onResponse(Call<UserList> call, Response<UserList> response) {
+				UserList list = response.body();
+				for(User user : list.data) {
 					log(user);
 				}
-
 			}
 
 			@Override
-			public void onFailure(Call<JsonObject> call, Throwable t) {
+			public void onFailure(Call<UserList> call, Throwable t) {
 				t.printStackTrace();
 				log("onFailure: " + t.getMessage());
 			}
@@ -97,20 +106,26 @@ public class RetrofitActivity extends AppCompatActivity {
 		UserUtil userUtil = retrofit.create(UserUtil.class);
 
 		userUtil.getAllWithReJava()     // 调用接口相当于一个事件源
-				.subscribeOn(Schedulers.io())
-				.observeOn(AndroidSchedulers.mainThread())
-				.subscribe(new DisposableObserver<JsonObject>() {
+				.subscribeOn(Schedulers.io())   // 设置事件源在io线程上发生
+				.map(jsonObject ->  new Gson().fromJson(jsonObject, UserList.class))
+				.map(userList -> userList.data)
+				/*.map(userList -> Observable.fromIterable(userList.data).filter(item -> item.age >= 30))
+				.subscribe(userObservable ->  userObservable
+								.observeOn(AndroidSchedulers.mainThread())
+								.subscribe(user -> log(user))
+				)*/
+				.observeOn(AndroidSchedulers.mainThread())  // 设置观察者线程
+				.subscribe(new DisposableObserver<List<User>>() {
 					@Override
 					public void onComplete() {
 					}
 					@Override
 					public void onError(Throwable e) {
+						log(e.getMessage());
 					}
 					@Override
-					public void onNext(JsonObject movieSubject) {
-						JsonArray jsonArray = movieSubject.getAsJsonArray("data");
-						for(int i=0; i<jsonArray.size(); i++) {
-							User user = new Gson().fromJson(jsonArray.get(i), User.class);
+					public void onNext(List<User> list) {
+						for(User user : list) {
 							log(user);
 						}
 					}
