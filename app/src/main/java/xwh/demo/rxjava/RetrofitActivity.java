@@ -14,6 +14,7 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.ObservableTransformer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Function;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
@@ -114,10 +115,26 @@ public class RetrofitActivity extends AppCompatActivity {
 		UserUtil userUtil = retrofit.create(UserUtil.class);
 
 		userUtil.getAllWithReJava()     // 调用接口相当于一个事件源
-				//.subscribeOn(Schedulers.io())   // 设置事件源在io线程上发生
+				//.subscribeOn(Schedulers.io())   // 设置事件源在io线程上发生，io和newThread的区别是：io使用了线程池。
 				.compose(new MyObservableTransformer<>())   // 用ObservableTransformer来处理线程切换
 				.map(jsonObject ->  new Gson().fromJson(jsonObject, UserList.class))
 				.map(userList -> userList.data)
+				/*.map(new Function<List<User>, List<User>>() {
+					@Override
+					public List<User> apply(List<User> users) throws Exception {
+						return users;
+					}
+				})*/
+				/*.flatMap(new Function<List<User>, ObservableSource<?>>() {
+					@Override
+					public ObservableSource<?> apply(List<User> users) throws Exception {
+
+						for(User item : users) {
+
+						}
+						return Observable.just(users);
+					}
+				})*/
 				/*.map(userList -> Observable.fromIterable(userList.data).filter(item -> item.age >= 30))
 				.subscribe(userObservable ->  userObservable
 								.observeOn(AndroidSchedulers.mainThread())

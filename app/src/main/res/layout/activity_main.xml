@@ -34,6 +34,12 @@
 		android:layout_marginTop="4dp"
 		android:text="Retrofit"
 		android:onClick="gotoRetrofit"/>
+	<Button
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="4dp"
+		android:text="操作符"
+		android:onClick="gotoOperator"/>
 
 	<TextView
 		android:id="@+id/text"

@@ -153,6 +153,12 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+	public void gotoOperator(View view) {
+		startActivity(new Intent(this, OperatorActivity.class));
+	}
+
+
+
 	private void log(String log) {
 		mTextView.append("\n" + log);
 	}
